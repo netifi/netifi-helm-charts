@@ -1,0 +1,50 @@
+replicaCount: 3
+
+image:
+  repository: "netifi/proteus"
+  tag: "1.5.3"
+  pullPolicy: "IfNotPresent"
+
+automountServiceAccountToken: true
+
+console:
+  port: 9000
+  public:
+    port: 30004
+
+metrics:
+  port: 8888
+
+tcp:
+  port: 8001
+  public:
+    addressUsePodIP: true
+    address:
+    port: 30000
+
+websocket:
+  port: 8101
+  public:
+    addressUsePodIP: true
+    address:
+    port: 30001
+
+cluster:
+  port: 7001
+  public:
+    addressUsePodIP: true
+    address:
+    port: 30002
+
+admin:
+  accessKey: "9007199254740991"
+  accessToken: "kTBDVtfRBO4tHOnZzSyY5ym2kfY="
+  port: 6001
+  public:
+    addressUsePodIP: true
+    address:
+    port: 30003
+
+resources: {}
+
+serviceType: NodePort

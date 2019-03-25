@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "netifi-broker.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "netifi-broker.name" . }}
+    helm.sh/chart: {{ include "netifi-broker.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  type: {{ .Values.serviceType }}
+  selector:
+    app.kubernetes.io/name: {{ include "netifi-broker.name" . }}
+    helm.sh/chart: {{ include "netifi-broker.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  ports:
+    - name: tcp
+      port: {{ .Values.tcp.port }}
+      nodePort: {{ .Values.tcp.public.port }}
+      targetPort: tcp
+      protocol: TCP
+    - name: websocket
+      port: {{ .Values.websocket.port }}
+      nodePort: {{ .Values.websocket.public.port }}
+      targetPort: websocket
+      protocol: TCP
+    - name: cluster
+      port: {{ .Values.cluster.port }}
+      nodePort: {{ .Values.cluster.public.port }}
+      targetPort: cluster
+      protocol: TCP
+    - name: admin
+      port: {{ .Values.admin.port }}
+      nodePort: {{ .Values.admin.public.port }}
+      targetPort: admin
+      protocol: TCP
+    - name: console
+      port: {{ .Values.console.port }}
+      nodePort: {{ .Values.console.public.port}}
+      targetPort: console
+      protocol: TCP
