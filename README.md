@@ -47,3 +47,24 @@ Initialize Tiller on the cluster
 helm init --service-account tiller --history-max 200
 ```
 
+## Use Chart
+
+Install the repo:
+
+```bash
+helm repo add netifi https://downloads.netifi.com/charts/
+```
+
+List available chart:
+
+```bash
+helm search netifi/
+```
+
+## Example Deployments
+
+Local Install:
+
+```bash
+helm install netifi/netifi-helm-charts -f ./setFiles/localInternal.yaml
+```

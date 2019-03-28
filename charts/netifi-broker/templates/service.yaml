@@ -17,26 +17,26 @@ spec:
   ports:
     - name: tcp
       port: {{ .Values.tcp.port }}
-      nodePort: {{ .Values.tcp.public.port }}
+      nodePort: {{ .Values.tcp.service.port }}
       targetPort: tcp
       protocol: TCP
     - name: websocket
       port: {{ .Values.websocket.port }}
-      nodePort: {{ .Values.websocket.public.port }}
+      nodePort: {{ .Values.websocket.service.port }}
       targetPort: websocket
       protocol: TCP
     - name: cluster
       port: {{ .Values.cluster.port }}
-      nodePort: {{ .Values.cluster.public.port }}
+      nodePort: {{ .Values.cluster.service.port }}
       targetPort: cluster
       protocol: TCP
     - name: admin
       port: {{ .Values.admin.port }}
-      nodePort: {{ .Values.admin.public.port }}
+      nodePort: {{ .Values.admin.service.port }}
       targetPort: admin
       protocol: TCP
     - name: console
       port: {{ .Values.console.port }}
-      nodePort: {{ .Values.console.public.port}}
+      nodePort: {{ .Values.console.service.port}}
       targetPort: console
       protocol: TCP

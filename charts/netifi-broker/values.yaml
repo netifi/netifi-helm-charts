@@ -9,7 +9,7 @@ automountServiceAccountToken: true
 
 console:
   port: 9000
-  public:
+  service:
     port: 30004
 
 metrics:
@@ -20,6 +20,8 @@ tcp:
   public:
     addressUsePodIP: true
     address:
+    port: 8001
+  service:
     port: 30000
 
 websocket:
@@ -28,12 +30,16 @@ websocket:
     addressUsePodIP: true
     address:
     port: 30001
+  service:
+    port: 30001
 
 cluster:
   port: 7001
   public:
     addressUsePodIP: true
     address:
+    port: 7001
+  service:
     port: 30002
 
 admin:
@@ -43,6 +49,8 @@ admin:
   public:
     addressUsePodIP: true
     address:
+    port: 30003
+  service:
     port: 30003
 
 resources: {}

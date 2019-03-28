@@ -82,6 +82,16 @@ spec:
                 secretKeyRef:
                   name: {{ include "netifi-broker.fullname" . }}-adminseedtoken
                   key: adminAccessToken
+            - name: ADMIN_PUBLIC_ADDRESS
+              {{- if .Values.admin.public.addressUsePodIP }}
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+                {{- else }}
+              value: "{{ .Values.admin.public.address }}"
+              {{- end }}
+            - name: ADMIN_PUBLIC_PORT
+              value: "{{ .Values.admin.public.port }}"
             - name: BROKER_PUBLIC_ADDRESS
               {{- if .Values.tcp.public.addressUsePodIP }}
               valueFrom:
@@ -92,6 +102,16 @@ spec:
               {{- end }}
             - name: BROKER_PUBLIC_PORT
               value: "{{ .Values.tcp.public.port }}"
+            - name: CLUSTER_PUBLIC_ADDRESS
+              {{- if .Values.cluster.public.addressUsePodIP }}
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+                {{- else }}
+              value: "{{ .Values.cluster.public.address }}"
+              {{- end }}
+            - name: CLUSTER_PUBLIC_PORT
+              value: "{{ .Values.cluster.public.port}}"
             - name: WEBSOCKET_BROKER_PUBLIC_ADDRESS
               {{- if .Values.websocket.public.addressUsePodIP }}
               valueFrom:
@@ -102,22 +122,6 @@ spec:
               {{- end }}
             - name: WEBSOCKET_BROKER_PUBLIC_PORT
               value: "{{ .Values.websocket.public.port }}"
-            - name: ADMIN_PUBLIC_ADDRESS
-              {{- if .Values.admin.public.addressUsePodIP }}
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.podIP
-              {{- else }}
-              value: "{{ .Values.admin.public.address }}"
-              {{- end }}
-            - name: CLUSTER_PUBLIC_ADDRESS
-              {{- if .Values.cluster.public.addressUsePodIP }}
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.podIP
-              {{- else }}
-              value: "{{ .Values.cluster.public.address }}"
-              {{- end }}
             - name: KUBERNETES_NAMESPACE
               valueFrom:
                 fieldRef:
