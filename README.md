@@ -52,7 +52,7 @@ helm init --service-account tiller --history-max 200
 Install the repo:
 
 ```bash
-helm repo add netifi https://downloads.netifi.com/charts/
+helm repo add netifi https://download.netifi.com/charts/
 ```
 
 List available chart:

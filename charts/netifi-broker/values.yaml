@@ -2,7 +2,7 @@ replicaCount: 3
 
 image:
   repository: "netifi/proteus"
-  tag: "1.5.3"
+  tag: "1.6.0"
   pullPolicy: "IfNotPresent"
 
 automountServiceAccountToken: true
