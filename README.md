@@ -52,7 +52,7 @@ helm init --service-account tiller --history-max 200
 Install the repo:
 
 ```bash
-helm repo add netifi https://download.netifi.com/charts/
+helm repo add netifi https://download.netifi.com/helm-charts/
 ```
 
 List available chart:
@@ -66,14 +66,82 @@ helm search netifi/
 Local Install:
 
 ```bash
-helm install netifi/netifi-helm-charts -f ./setFiles/localInternal.yaml
+helm install netifi/netifi-helm-charts -f ./setFiles/local.yaml
 ```
+
+Open the minikube dashboard:
+
+```bash
+minikube dashboard
+```
+
+Get your minikube ip address:
+
+```bash
+minikube ip
+# 192.168.64.8
+```
+
+You use this IP address in your code, and to view the Netifi Broker dashboard:
+
+```bash
+open http://$(minikube ip):30004
+```
+
+Or open a browser to: <http://192.168.64.8:30004>
+
+In the dashboard you should see 1 broker with a random name. If you click on the name, it will
+take you to a broker details page. This page will tell you want information your broker is
+advertising to both other brokers, services, and clients.
+
+You'll see that all addresses are currently displaying `172.x.x.x` addresses. This is the address
+of the container. Typically this address is only routable from other containers running on the
+Kubernetes cluster, and this is ok if all of our applications are running in Kubernetes; however,
+let's configure the broker to be accessible natively from our laptop for local development.
+
+Let's delete the existing cluster:
+
+```bash
+helm list
+# NAME            REVISION        UPDATED                         STATUS          CHART                           APP VERSION     NAMESPACE
+# wandering-molly 1               Tue Apr  2 16:16:56 2019        DEPLOYED        netifi-helm-charts-0.0.1        1.6.0           default
+```
+
+```bash
+ helm delete wandering-molly
+# release "wandering-molly" deleted
+```
+
+Now let's edit the `local.yaml` file to look like this:
+
+```yaml
+netifi-broker:
+  enabled: true
+  replicaCount: 1
+  websocket:
+    public:
+      addressUsePodIP: false
+      address: <MINIKUBE IP ADDRESS>
+```
+
+And now let's redeploy:
+
+```bash
+helm install netifi/netifi-helm-charts -f ./setFiles/local.yaml
+```
+
+Now when we open our dashboard again: <http://192.168.64.8:30004> we should see that the TCP address
+is something like: `192.168.64.8:30001`
+
+## Using the Kubernetes Cluster for local development
+
+< Insert words and the pinger project>
 
 ### Releasing this chart package
 
 ```bash
 curl -O https://download.netifi.com/charts/index.yaml
 helm package .
-helm repo index --merge index.yaml --url https://download.netifi.com/charts/ .
+helm repo index --merge index.yaml .
 # then publish the tgz and index.yaml
 ```
