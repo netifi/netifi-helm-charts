@@ -68,3 +68,12 @@ Local Install:
 ```bash
 helm install netifi/netifi-helm-charts -f ./setFiles/localInternal.yaml
 ```
+
+### Releasing this chart package
+
+```bash
+curl -O https://download.netifi.com/charts/index.yaml
+helm package .
+helm repo index --merge index.yaml --url https://download.netifi.com/charts/ .
+# then publish the tgz and index.yaml
+```
