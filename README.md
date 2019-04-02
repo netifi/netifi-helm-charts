@@ -137,6 +137,10 @@ is something like: `192.168.64.8:30001`
 
 < Insert words and the pinger project>
 
+## Using the Helm chart with GKE
+
+< Insert words and deploying the pinger project on the internet>
+
 ### Releasing this chart package
 
 ```bash
