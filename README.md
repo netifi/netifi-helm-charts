@@ -135,7 +135,26 @@ is something like: `192.168.64.8:30001`
 
 ## Using the Kubernetes Cluster for local development
 
-< Insert words and the pinger project>
+Go clone our [Pinger](https://github.com/netifi/pinger) example project.
+
+```bash
+git clone https://github.com/netifi/pinger.git pinger
+cd pinger
+```
+
+Configure your shell to use the docker daemon running in minikube:
+
+```bash
+eval $(minikube docker-env)
+```
+
+Build the `ping` and `pong` docker containers:
+
+```bash
+./gradlew dockerBuildImage
+```
+
+
 
 ## Using the Helm chart with GKE
 
