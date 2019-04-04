@@ -18,7 +18,8 @@ metrics:
 tcp:
   port: 8001
   public:
-    addressUsePodIP: true
+    addressUsePodIP: false
+    addressUseHostIP: true
     address:
     port: 8001
   service:
@@ -27,7 +28,8 @@ tcp:
 websocket:
   port: 8101
   public:
-    addressUsePodIP: true
+    addressUsePodIP: false
+    addressUseHostIP: true
     address:
     port: 30001
   service:
@@ -36,7 +38,8 @@ websocket:
 cluster:
   port: 7001
   public:
-    addressUsePodIP: true
+    addressUsePodIP: false
+    addressUseHostIP: true
     address:
     port: 7001
   service:
@@ -47,7 +50,8 @@ admin:
   accessToken: "kTBDVtfRBO4tHOnZzSyY5ym2kfY="
   port: 6001
   public:
-    addressUsePodIP: true
+    addressUsePodIP: false
+    addressUseHostIP: true
     address:
     port: 30003
   service:

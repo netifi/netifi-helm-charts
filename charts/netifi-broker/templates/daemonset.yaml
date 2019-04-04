@@ -1,6 +1,6 @@
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: DaemonSet
 metadata:
   name: {{ include "netifi-broker.fullname" . }}
   labels:
@@ -9,7 +9,6 @@ metadata:
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
 spec:
-  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ include "netifi-broker.name" . }}
@@ -26,22 +25,6 @@ spec:
     spec:
       serviceAccountName: {{ include "netifi-broker.fullname" . }}
       automountServiceAccountToken: {{ .Values.automountServiceAccountToken }}
-      affinity:
-        podAntiAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-            - weight: 1
-              podAffinityTerm:
-                labelSelector:
-                  matchExpressions:
-                    - key: "app.kubernetes.io/name"
-                      operator: In
-                      values:
-                        - {{ include "netifi-broker.name" . }}
-                    - key: "app.kubernetes.io/instance"
-                      operator: In
-                      values:
-                        - {{ .Release.Name }}
-                topologyKey: "kubernetes.io/hostname"
       containers:
         - name: {{ include "netifi-broker.fullname" . }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -87,7 +70,11 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
-                {{- else }}
+              {{- else if .Values.admin.public.addressUseHostIP }}
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+              {{- else }}
               value: "{{ .Values.admin.public.address }}"
               {{- end }}
             - name: ADMIN_PUBLIC_PORT
@@ -97,6 +84,10 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
+              {{- else if .Values.tcp.public.addressUseHostIP }}
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
               {{- else }}
               value: "{{ .Values.tcp.public.address }}"
               {{- end }}
@@ -107,7 +98,11 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
-                {{- else }}
+              {{- else if .Values.cluster.public.addressUseHostIP }}
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+              {{- else }}
               value: "{{ .Values.cluster.public.address }}"
               {{- end }}
             - name: CLUSTER_PUBLIC_PORT
@@ -117,7 +112,11 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
-                {{- else }}
+              {{- else if .Values.websocket.public.addressUseHostIP }}
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+              {{- else }}
               value: "{{ .Values.websocket.public.address }}"
               {{- end }}
             - name: WEBSOCKET_BROKER_PUBLIC_PORT
@@ -132,7 +131,7 @@ spec:
               value: "cluster"
             - name: ENVIRONMENT
               value: {{ (gt .Values.replicaCount 1.0) | ternary "kubernetes" "local" }}
-      {{- with .Values.imagePullSecrets }}
+        {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         - name: {{ . }}
-      {{- end }}
+    {{- end }}
