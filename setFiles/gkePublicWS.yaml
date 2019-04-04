@@ -1,8 +1,2 @@
 netifi-broker:
   enabled: true
-  replicaCount: 3
-  serviceType: LoadBalancer
-  websocket:
-    public:
-      addressUsePodIP: false
-      address: "netifi.discovery.smartAddress"

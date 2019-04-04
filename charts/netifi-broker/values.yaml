@@ -1,4 +1,5 @@
 replicaCount: 3
+environment: kubernetes
 
 image:
   repository: "netifi/proteus"
@@ -7,10 +8,13 @@ image:
 
 automountServiceAccountToken: true
 
+sslDisabled: false
+prometheusBridgeEnabled: true
+
 console:
   port: 9000
   service:
-    port: 30004
+    port: 9000
 
 metrics:
   port: 8888
@@ -23,7 +27,7 @@ tcp:
     address:
     port: 8001
   service:
-    port: 30000
+    port: 8001
 
 websocket:
   port: 8101
@@ -31,9 +35,9 @@ websocket:
     addressUsePodIP: false
     addressUseHostIP: true
     address:
-    port: 30001
+    port: 8101
   service:
-    port: 30001
+    port: 8101
 
 cluster:
   port: 7001
@@ -43,7 +47,7 @@ cluster:
     address:
     port: 7001
   service:
-    port: 30002
+    port: 7001
 
 admin:
   accessKey: "9007199254740991"
@@ -53,10 +57,23 @@ admin:
     addressUsePodIP: false
     addressUseHostIP: true
     address:
-    port: 30003
+    port: 6001
   service:
-    port: 30003
+    port: 6001
 
-resources: {}
+jmx:
+  port: 40000
 
-serviceType: NodePort
+discovery:
+  portName: cluster
+
+resources:
+  limits:
+    cpu: "2"
+    memory: "2Gi"
+  requests:
+    memory: "2Gi"
+    cpu: "100m"
+
+
+serviceType: LoadBalancer
