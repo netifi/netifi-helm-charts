@@ -34,7 +34,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
             - name: BROKER_SERVER_OPTS
-              value: "$(BROKER_SERVER_OPTS) '-Dcom.sun.management.jmxremote.rmi.port={{ .Values.jmx.port }}' \
+              value: "'-Dcom.sun.management.jmxremote.rmi.port={{ .Values.jmx.port }}' \
                     '-Dcom.sun.management.jmxremote=true' \
                     '-Dcom.sun.management.jmxremote.port={{ .Values.jmx.port }}' \
                     '-Dcom.sun.management.jmxremote.ssl=false' \
@@ -43,7 +43,7 @@ spec:
                     '-XX:+UnlockCommercialFeatures' \
                     '-XX:+FlightRecorder' \
                     '-XX:ActiveProcessorCount=2'
-                    '-Djava.rmi.server.hostname='$(BROKER_PUBLIC_ADDRESS)"
+                    '-Djava.rmi.server.hostname=${BROKER_PUBLIC_ADDRESS}'"
             - name: AUTHENTICATION.0.accessKey
               valueFrom:
                 secretKeyRef:
