@@ -155,6 +155,17 @@ open http://localhost:8081/ping
 
 Roughly every second you should see the counters go up.
 
+Now let's get your service account so that we can dynamically find our brokers:
+
+```bash
+kubectl get serviceaccounts
+# NAME                       SECRETS   AGE
+# default                    1         7m13s
+# odd-dog-netifi-broker   1         5m10s
+```
+
+This service account is also used by the brokers to discover themselves.
+
 Now let's launch another ping service, only this time let's use Kubernetes service discovery:
 
 ```bash
@@ -163,17 +174,6 @@ kubectl run ping2 --image=netifi/pinger-ping --image-pull-policy=Never --service
 --env="NETIFI_PROTEUS_DISCOVERY_KUBERNETESPROPERTIES_CONNECTIONTYPE=tcp" \
 --env="NETIFI_PROTEUS_DISCOVERY_KUBERNETESPROPERTIES_DEPLOYMENTNAME=odd-dog-netifi-broker"
 ```
-
-Note that you'll have to substitute the service account and deployment name for the name of the helm
-chart. You can find that by running:
-
-```bash
-helm list
-# NAME    REVISION        UPDATED                         STATUS          CHART                           APP VERSION     NAMESPACE
-# odd-dog 1               Fri Apr  5 19:49:54 2019        DEPLOYED        netifi-helm-charts-0.0.1        1.6.0           default  
-```
-
-Then add `-netifi-broker` to the end of it.
 
 You should see that Pong is now incrementing roughly twice as fast, while the Ping services are
 maintaining their individual rates.
@@ -188,7 +188,7 @@ eval $(minikube docker-env -u)
 And now start an additional Pong service:
 
 ```bash
-docker run --rm -p 10001:8080 \
+docker run --rm -p 8080:8080 \
 -e NETIFI_PROTEUS_DISCOVERY_ENVIRONMENT=static \
 -e NETIFI_PROTEUS_DISCOVERY_STATICPROPERTIES_CONNECTIONTYPE=ws \
 -e NETIFI_PROTEUS_DISCOVERY_STATICPROPERTIES_ADDRESSES=192.168.64.8 \
@@ -196,7 +196,7 @@ docker run --rm -p 10001:8080 \
 netifi/pinger-pong:latest
 ```
 
-You can now open: <http://localhost:10001/pong> to see this Pong service taking requests.
+You can now open: <http://localhost:8080/pong> to see this Pong service taking requests.
 
 Now launch a bunch more ping services:
 
@@ -257,7 +257,8 @@ helm init --service-account tiller --history-max 200
 ```
 
 ```bash
-helm install . -f ./setFiles/gkePublicWS.yaml
+helm repo add netifi https://download.netifi.com/helm-charts/
+helm install netifi/netifi-helm-charts -f ./setFiles/gkePublicWS.yaml
 ```
 
 Go the the GKE Console, find the Daemon Set pods, and wait for them to come up. After it's up you
@@ -280,7 +281,7 @@ the Kubernetes Discovery plugins to connect to the brokers dynamically.
 Here we can even us the load balancer address to connect to the cluster:
 
 ```bash
-docker run --rm -p 10001:8080 \
+docker run --rm -p 8080:8080 \
 -e NETIFI_PROTEUS_DISCOVERY_ENVIRONMENT=static \
 -e NETIFI_PROTEUS_DISCOVERY_STATICPROPERTIES_CONNECTIONTYPE=ws \
 -e NETIFI_PROTEUS_DISCOVERY_STATICPROPERTIES_ADDRESSES=35.222.72.248 \
