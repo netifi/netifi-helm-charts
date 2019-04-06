@@ -75,5 +75,11 @@ resources:
     memory: "2Gi"
     cpu: "100m"
 
-
+nodeSelector: {}
 serviceType: LoadBalancer
+
+logger:
+  rootLevel: info
+  netifiLevel: info
+  rsocketErrorLevel: debug
+  rsocketFrameloggerLevel: info
