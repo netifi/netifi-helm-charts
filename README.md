@@ -85,53 +85,17 @@ minikube ip
 You use this IP address in your code, and to view the Netifi Broker dashboard:
 
 ```bash
-open http://$(minikube ip):30004
+open http://$(minikube ip):9000
 ```
 
-Or open a browser to: <http://192.168.64.8:30004>
+Or open a browser to: <http://192.168.64.8:9000>
 
 In the dashboard you should see 1 broker with a random name. If you click on the name, it will
 take you to a broker details page. This page will tell you want information your broker is
 advertising to both other brokers, services, and clients.
 
-You'll see that all addresses are currently displaying `172.x.x.x` addresses. This is the address
-of the container. Typically this address is only routable from other containers running on the
-Kubernetes cluster, and this is ok if all of our applications are running in Kubernetes; however,
-let's configure the broker to be accessible natively from our laptop for local development.
-
-Let's delete the existing cluster:
-
-```bash
-helm list
-# NAME            REVISION        UPDATED                         STATUS          CHART                           APP VERSION     NAMESPACE
-# wandering-molly 1               Tue Apr  2 16:16:56 2019        DEPLOYED        netifi-helm-charts-0.0.1        1.6.0           default
-```
-
-```bash
- helm delete wandering-molly
-# release "wandering-molly" deleted
-```
-
-Now let's edit the `local.yaml` file to look like this:
-
-```yaml
-netifi-broker:
-  enabled: true
-  replicaCount: 1
-  websocket:
-    public:
-      addressUsePodIP: false
-      address: <MINIKUBE IP ADDRESS>
-```
-
-And now let's redeploy:
-
-```bash
-helm install netifi/netifi-helm-charts -f ./setFiles/local.yaml
-```
-
-Now when we open our dashboard again: <http://192.168.64.8:30004> we should see that the TCP address
-is something like: `192.168.64.8:30001`
+You should notice that it is advertising the IP address of the minikube host. This enables your
+services running in minikube and those running from your laptop to both connect to the broker.
 
 ## Using the Kubernetes Cluster for local development
 
@@ -148,17 +112,198 @@ Configure your shell to use the docker daemon running in minikube:
 eval $(minikube docker-env)
 ```
 
-Build the `ping` and `pong` docker containers:
+In that same shell, build the `ping` and `pong` docker containers:
 
 ```bash
 ./gradlew dockerBuildImage
 ```
 
+Now start a Pong service that connects statically to the broker over the TCP connection:
 
+```bash
+kubectl run pong1 --image=netifi/pinger-pong --image-pull-policy=Never \
+--env="NETIFI_PROTEUS_DISCOVERY_ENVIRONMENT=static" \
+--env="NETIFI_PROTEUS_DISCOVERY_STATICPROPERTIES_CONNECTIONTYPE=tcp" \
+--env="NETIFI_PROTEUS_DISCOVERY_STATICPROPERTIES_ADDRESSES=192.168.64.8" \
+--env="NETIFI_PROTEUS_DISCOVERY_STATICPROPERTIES_PORT=8001"
+```
+
+And now start Ping service that connects statically to the broker over the TCP connection:
+
+```bash
+kubectl run ping1 --image=netifi/pinger-ping --image-pull-policy=Never \
+--env="NETIFI_PROTEUS_DISCOVERY_ENVIRONMENT=static" \
+--env="NETIFI_PROTEUS_DISCOVERY_STATICPROPERTIES_CONNECTIONTYPE=tcp" \
+--env="NETIFI_PROTEUS_DISCOVERY_STATICPROPERTIES_ADDRESSES=192.168.64.8" \
+--env="NETIFI_PROTEUS_DISCOVERY_STATICPROPERTIES_PORT=8001"
+```
+
+You can use `minikube dashboard` to find the deployments and read the logs, or you can view
+the ping and pong endpoints by doing this:
+
+```bash
+kubectl port-forward deployment/pong1 8080
+open http://localhost:8080/pong
+```
+
+or
+
+```bash
+kubectl port-forward deployment/ping1 8081
+open http://localhost:8081/ping
+```
+
+Roughly every second you should see the counters go up.
+
+Now let's launch another ping service, only this time let's use Kubernetes service discovery:
+
+```bash
+kubectl run ping2 --image=netifi/pinger-ping --image-pull-policy=Never --serviceaccount=odd-dog-netifi-broker \
+--env="NETIFI_PROTEUS_DISCOVERY_ENVIRONMENT=kubernetes" \
+--env="NETIFI_PROTEUS_DISCOVERY_KUBERNETESPROPERTIES_CONNECTIONTYPE=tcp" \
+--env="NETIFI_PROTEUS_DISCOVERY_KUBERNETESPROPERTIES_DEPLOYMENTNAME=odd-dog-netifi-broker"
+```
+
+Note that you'll have to substitute the service account and deployment name for the name of the helm
+chart. You can find that by running:
+
+```bash
+helm list
+# NAME    REVISION        UPDATED                         STATUS          CHART                           APP VERSION     NAMESPACE
+# odd-dog 1               Fri Apr  5 19:49:54 2019        DEPLOYED        netifi-helm-charts-0.0.1        1.6.0           default  
+```
+
+Then add `-netifi-broker` to the end of it.
+
+You should see that Pong is now incrementing roughly twice as fast, while the Ping services are
+maintaining their individual rates.
+
+Now let's build these same images on our laptop against a locally running Docker daemon:
+
+```bash
+eval $(minikube docker-env -u)
+./gradlew dockerBuildImage
+```
+
+And now start an additional Pong service:
+
+```bash
+docker run --rm -p 10001:8080 \
+-e NETIFI_PROTEUS_DISCOVERY_ENVIRONMENT=static \
+-e NETIFI_PROTEUS_DISCOVERY_STATICPROPERTIES_CONNECTIONTYPE=ws \
+-e NETIFI_PROTEUS_DISCOVERY_STATICPROPERTIES_ADDRESSES=192.168.64.8 \
+-e NETIFI_PROTEUS_DISCOVERY_STATICPROPERTIES_PORT=8101 \
+netifi/pinger-pong:latest
+```
+
+You can now open: <http://localhost:10001/pong> to see this Pong service taking requests.
+
+Now launch a bunch more ping services:
+
+```bash
+for i in {1..5}
+do
+   docker run -d -P \
+   -e NETIFI_PROTEUS_DISCOVERY_ENVIRONMENT=static \
+   -e NETIFI_PROTEUS_DISCOVERY_STATICPROPERTIES_CONNECTIONTYPE=ws \
+   -e NETIFI_PROTEUS_DISCOVERY_STATICPROPERTIES_ADDRESSES=192.168.64.8 \
+   -e NETIFI_PROTEUS_DISCOVERY_STATICPROPERTIES_PORT=8101 \
+   netifi/pinger-ping:latest
+done
+```
+
+You can use `docker ps` to find the ephemeral ports, and launch their respective ports, or follow
+their logs, with `docker logs -f <container id>`
+
+You can also reopen the Netifi Broker Console: <http://192.168.64.8:9000> select the Groups tab, and
+see that there are now 7 destinations in the `com.netifi.pinger.ping` group, and 2 destinations
+in the `com.netifi.pinger.pong` group.
+
+If you add or remove more ping or pong services, you should see these values dynamically update
+in your browser.
+
+Use these commands to remove everything:
+
+```bash
+docker rm -f $(docker ps -f "ancestor=netifi/pinger-ping:latest" -q)
+docker rm -f $(docker ps -f "ancestor=netifi/pinger-pong:latest" -q)
+kubectl delete deployment ping2
+kubectl delete deployment ping1
+kubectl delete deployment pong1
+helm delete odd-dog
+```
 
 ## Using the Helm chart with GKE
 
-< Insert words and deploying the pinger project on the internet>
+Open Google Cloud Console and build yourself a Kubernetes cluster with 3 default nodes labeled
+with `type: broker` with 2 CPUs each, and another set of 3 nodes with `type: general`.
+
+Then get the credentials for the node via the Google Cloud CLI:
+
+```bash
+gcloud container clusters get-credentials netifi-demo --zone us-central1-a
+```
+
+Install the Tiller RBAC policy:
+
+```bash
+kubectl create -f tiller-rbac-config.yaml
+```
+
+Initialize Tiller on the cluster
+
+```bash
+helm init --service-account tiller --history-max 200
+```
+
+```bash
+helm install . -f ./setFiles/gkePublicWS.yaml
+```
+
+Go the the GKE Console, find the Daemon Set pods, and wait for them to come up. After it's up you
+can take any of the cluster's public IP addresses and go to port 9000 of it to view the Console.
+
+Similarly you can use Kubectl to get the load balancer IP and access it that way:
+
+```bash
+kubectl get services
+# NAME                            TYPE           CLUSTER-IP     EXTERNAL-IP     PORT(S)                                                                      AGE
+# anxious-seastar-netifi-broker   LoadBalancer   10.7.254.117   35.222.72.248   8001:31887/TCP,8101:30973/TCP,7001:31197/TCP,6001:31033/TCP,9000:31524/TCP   6m
+# kubernetes                      ClusterIP      10.7.240.1     <none>          443/TCP                                                                      18m
+open http://35.222.72.248:9000
+```
+
+From here you can use Docker on your local computer to connect Pong and Ping services to the cluster,
+or you can work on building your own Helm Chart to deploy Pong and Ping to the cluster and use
+the Kubernetes Discovery plugins to connect to the brokers dynamically.
+
+Here we can even us the load balancer address to connect to the cluster:
+
+```bash
+docker run --rm -p 10001:8080 \
+-e NETIFI_PROTEUS_DISCOVERY_ENVIRONMENT=static \
+-e NETIFI_PROTEUS_DISCOVERY_STATICPROPERTIES_CONNECTIONTYPE=ws \
+-e NETIFI_PROTEUS_DISCOVERY_STATICPROPERTIES_ADDRESSES=35.222.72.248 \
+-e NETIFI_PROTEUS_DISCOVERY_STATICPROPERTIES_PORT=8101 \
+netifi/pinger-pong:latest
+```
+
+Now launch a bunch more ping services:
+
+```bash
+for i in {1..5}
+do
+   docker run -d -P \
+   -e NETIFI_PROTEUS_DISCOVERY_ENVIRONMENT=static \
+   -e NETIFI_PROTEUS_DISCOVERY_STATICPROPERTIES_CONNECTIONTYPE=ws \
+   -e NETIFI_PROTEUS_DISCOVERY_STATICPROPERTIES_ADDRESSES=35.222.72.248 \
+   -e NETIFI_PROTEUS_DISCOVERY_STATICPROPERTIES_PORT=8101 \
+   netifi/pinger-ping:latest
+done
+```
+
+And this works because once the initial connection is made the Proteus Client will then use
+information from the brokers to establish more connections to the publicly advertised websockets.
 
 ### Releasing this chart package
 

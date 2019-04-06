@@ -1,2 +1,10 @@
 netifi-broker:
   enabled: true
+  environment: kubernetes
+  nodeSelector:
+    type: broker
+  websocket:
+    public:
+      addressUsePodIP: false
+      addressUseHostIP: false
+      address: "netifi.discovery.smartAddress"
