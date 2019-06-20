@@ -75,27 +75,7 @@ Open the minikube dashboard:
 minikube dashboard
 ```
 
-Get your minikube ip address:
-
-```bash
-minikube ip
-# 192.168.64.8
-```
-
-You use this IP address in your code, and to view the Netifi Broker dashboard:
-
-```bash
-open http://$(minikube ip):9000
-```
-
-Or open a browser to: <http://192.168.64.8:9000>
-
-In the dashboard you should see 1 broker with a random name. If you click on the name, it will
-take you to a broker details page. This page will tell you want information your broker is
-advertising to both other brokers, services, and clients.
-
-You should notice that it is advertising the IP address of the minikube host. This enables your
-services running in minikube and those running from your laptop to both connect to the broker.
+You should see a Pod with a single broker node deployed in it.
 
 ## Using the Kubernetes Cluster for local development
 
@@ -122,20 +102,20 @@ Now start a Pong service that connects statically to the broker over the TCP con
 
 ```bash
 kubectl run pong1 --image=netifi/pinger-pong --image-pull-policy=Never \
---env="NETIFI_PROTEUS_DISCOVERY_ENVIRONMENT=static" \
---env="NETIFI_PROTEUS_DISCOVERY_STATICPROPERTIES_CONNECTIONTYPE=tcp" \
---env="NETIFI_PROTEUS_DISCOVERY_STATICPROPERTIES_ADDRESSES=192.168.64.8" \
---env="NETIFI_PROTEUS_DISCOVERY_STATICPROPERTIES_PORT=8001"
+--env="NETIFI_CLIENT_DISCOVERY_ENVIRONMENT=static" \
+--env="NETIFI_CLIENT_DISCOVERY_STATICPROPERTIES_CONNECTIONTYPE=tcp" \
+--env="NETIFI_CLIENT_DISCOVERY_STATICPROPERTIES_ADDRESSES=192.168.64.8" \
+--env="NETIFI_CLIENT_DISCOVERY_STATICPROPERTIES_PORT=8001"
 ```
 
 And now start Ping service that connects statically to the broker over the TCP connection:
 
 ```bash
 kubectl run ping1 --image=netifi/pinger-ping --image-pull-policy=Never \
---env="NETIFI_PROTEUS_DISCOVERY_ENVIRONMENT=static" \
---env="NETIFI_PROTEUS_DISCOVERY_STATICPROPERTIES_CONNECTIONTYPE=tcp" \
---env="NETIFI_PROTEUS_DISCOVERY_STATICPROPERTIES_ADDRESSES=192.168.64.8" \
---env="NETIFI_PROTEUS_DISCOVERY_STATICPROPERTIES_PORT=8001"
+--env="NETIFI_CLIENT_DISCOVERY_ENVIRONMENT=static" \
+--env="NETIFI_CLIENT_DISCOVERY_STATICPROPERTIES_CONNECTIONTYPE=tcp" \
+--env="NETIFI_CLIENT_DISCOVERY_STATICPROPERTIES_ADDRESSES=192.168.64.8" \
+--env="NETIFI_CLIENT_DISCOVERY_STATICPROPERTIES_PORT=8001"
 ```
 
 You can use `minikube dashboard` to find the deployments and read the logs, or you can view
@@ -170,9 +150,9 @@ Now let's launch another ping service, only this time let's use Kubernetes servi
 
 ```bash
 kubectl run ping2 --image=netifi/pinger-ping --image-pull-policy=Never --serviceaccount=odd-dog-netifi-broker \
---env="NETIFI_PROTEUS_DISCOVERY_ENVIRONMENT=kubernetes" \
---env="NETIFI_PROTEUS_DISCOVERY_KUBERNETESPROPERTIES_CONNECTIONTYPE=tcp" \
---env="NETIFI_PROTEUS_DISCOVERY_KUBERNETESPROPERTIES_DEPLOYMENTNAME=odd-dog-netifi-broker"
+--env="NETIFI_CLIENT_DISCOVERY_ENVIRONMENT=kubernetes" \
+--env="NETIFI_CLIENT_DISCOVERY_KUBERNETESPROPERTIES_CONNECTIONTYPE=tcp" \
+--env="NETIFI_CLIENT_DISCOVERY_KUBERNETESPROPERTIES_DEPLOYMENTNAME=odd-dog-netifi-broker"
 ```
 
 You should see that Pong is now incrementing roughly twice as fast, while the Ping services are
@@ -189,10 +169,10 @@ And now start an additional Pong service:
 
 ```bash
 docker run --rm -p 8080:8080 \
--e NETIFI_PROTEUS_DISCOVERY_ENVIRONMENT=static \
--e NETIFI_PROTEUS_DISCOVERY_STATICPROPERTIES_CONNECTIONTYPE=ws \
--e NETIFI_PROTEUS_DISCOVERY_STATICPROPERTIES_ADDRESSES=192.168.64.8 \
--e NETIFI_PROTEUS_DISCOVERY_STATICPROPERTIES_PORT=8101 \
+-e NETIFI_CLIENT_DISCOVERY_ENVIRONMENT=static \
+-e NETIFI_CLIENT_DISCOVERY_STATICPROPERTIES_CONNECTIONTYPE=ws \
+-e NETIFI_CLIENT_DISCOVERY_STATICPROPERTIES_ADDRESSES=192.168.64.8 \
+-e NETIFI_CLIENT_DISCOVERY_STATICPROPERTIES_PORT=8101 \
 netifi/pinger-pong:latest
 ```
 
@@ -204,10 +184,10 @@ Now launch a bunch more ping services:
 for i in {1..5}
 do
    docker run -d -P \
-   -e NETIFI_PROTEUS_DISCOVERY_ENVIRONMENT=static \
-   -e NETIFI_PROTEUS_DISCOVERY_STATICPROPERTIES_CONNECTIONTYPE=ws \
-   -e NETIFI_PROTEUS_DISCOVERY_STATICPROPERTIES_ADDRESSES=192.168.64.8 \
-   -e NETIFI_PROTEUS_DISCOVERY_STATICPROPERTIES_PORT=8101 \
+   -e NETIFI_CLIENT_DISCOVERY_ENVIRONMENT=static \
+   -e NETIFI_CLIENT_DISCOVERY_STATICPROPERTIES_CONNECTIONTYPE=ws \
+   -e NETIFI_CLIENT_DISCOVERY_STATICPROPERTIES_ADDRESSES=192.168.64.8 \
+   -e NETIFI_CLIENT_DISCOVERY_STATICPROPERTIES_PORT=8101 \
    netifi/pinger-ping:latest
 done
 ```
@@ -282,10 +262,10 @@ Here we can even us the load balancer address to connect to the cluster:
 
 ```bash
 docker run --rm -p 8080:8080 \
--e NETIFI_PROTEUS_DISCOVERY_ENVIRONMENT=static \
--e NETIFI_PROTEUS_DISCOVERY_STATICPROPERTIES_CONNECTIONTYPE=ws \
--e NETIFI_PROTEUS_DISCOVERY_STATICPROPERTIES_ADDRESSES=35.222.72.248 \
--e NETIFI_PROTEUS_DISCOVERY_STATICPROPERTIES_PORT=8101 \
+-e NETIFI_CLIENT_DISCOVERY_ENVIRONMENT=static \
+-e NETIFI_CLIENT_DISCOVERY_STATICPROPERTIES_CONNECTIONTYPE=ws \
+-e NETIFI_CLIENT_DISCOVERY_STATICPROPERTIES_ADDRESSES=35.222.72.248 \
+-e NETIFI_CLIENT_DISCOVERY_STATICPROPERTIES_PORT=8101 \
 netifi/pinger-pong:latest
 ```
 
@@ -295,10 +275,10 @@ Now launch a bunch more ping services:
 for i in {1..5}
 do
    docker run -d -P \
-   -e NETIFI_PROTEUS_DISCOVERY_ENVIRONMENT=static \
-   -e NETIFI_PROTEUS_DISCOVERY_STATICPROPERTIES_CONNECTIONTYPE=ws \
-   -e NETIFI_PROTEUS_DISCOVERY_STATICPROPERTIES_ADDRESSES=35.222.72.248 \
-   -e NETIFI_PROTEUS_DISCOVERY_STATICPROPERTIES_PORT=8101 \
+   -e NETIFI_CLIENT_DISCOVERY_ENVIRONMENT=static \
+   -e NETIFI_CLIENT_DISCOVERY_STATICPROPERTIES_CONNECTIONTYPE=ws \
+   -e NETIFI_CLIENT_DISCOVERY_STATICPROPERTIES_ADDRESSES=35.222.72.248 \
+   -e NETIFI_CLIENT_DISCOVERY_STATICPROPERTIES_PORT=8101 \
    netifi/pinger-ping:latest
 done
 ```
@@ -309,8 +289,8 @@ information from the brokers to establish more connections to the publicly adver
 ### Releasing this chart package
 
 ```bash
-curl -O https://download.netifi.com/charts/index.yaml
+curl -O https://download.netifi.com/helm-charts/index.yaml
 helm package .
 helm repo index --merge index.yaml .
-# then publish the tgz and index.yaml
+# then publish the tgz and index.yaml make sure to make the artifacts public in S3 and invalidate /helm-charts/index.yaml in cloudfront
 ```
