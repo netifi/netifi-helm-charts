@@ -2,8 +2,8 @@ replicaCount: 3
 environment: kubernetes
 
 image:
-  repository: "netifi/proteus"
-  tag: "1.6.0"
+  repository: "netifi/broker"
+  tag: "1.6.4"
   pullPolicy: "IfNotPresent"
 
 automountServiceAccountToken: true
