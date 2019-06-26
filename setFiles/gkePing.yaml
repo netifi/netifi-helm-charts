@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: ping-rs
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      type: general
+  template:
+    metadata:
+      labels:
+        type: general
+    spec:
+      serviceAccountName: rafting-quoll-netifi-broker
+      containers:
+        - name: ping
+          image: netifi/pinger-ping:1.6.4
+          ports:
+            - containerPort: 8080
+          env:
+            - name: NETIFI_CLIENT_DISCOVERY_ENVIRONMENT
+              value: kubernetes
+            - name: NETIFI_CLIENT_DISCOVERY_KUBERNETESPROPERTIES_CONNECTIONTYPE
+              value: TCP
+            - name: NETIFI_CLIENT_DISCOVERY_KUBERNETESPROPERTIES_DEPLOYMENTNAME
+              value: rafting-quoll-netifi-broker
