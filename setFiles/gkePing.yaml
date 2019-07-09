@@ -15,7 +15,7 @@ spec:
       serviceAccountName: rafting-quoll-netifi-broker
       containers:
         - name: ping
-          image: netifi/pinger-ping:1.6.4
+          image: netifi/pinger-ping:1.6.6
           ports:
             - containerPort: 8080
           env:
