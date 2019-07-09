@@ -20,3 +20,6 @@
 .idea/
 *.tmproj
 .vscode/
+
+index.yaml
+netifi-helm-charts-*.tgz
