@@ -317,7 +317,7 @@ Welcome to the Netifi cloud-native application platform!
 curl -O https://download.netifi.com/helm-charts/index.yaml
 helm package .
 helm repo index --merge index.yaml .
-AWS_PROFILE=netifi-prod  aws s3 cp --acl public-read ./netifi-helm-charts-0.0.3.tgz s3://download.netifi.com/helm-charts/
+AWS_PROFILE=netifi-prod  aws s3 cp --acl public-read ./netifi-helm-charts-0.0.4.tgz s3://download.netifi.com/helm-charts/
 AWS_PROFILE=netifi-prod  aws s3 cp --acl public-read ./index.yaml s3://download.netifi.com/helm-charts/
 # invalidate /helm-charts/index.yaml in cloudfront
 ```
