@@ -47,6 +47,8 @@ Initialize Tiller on the cluster
 helm init --service-account tiller --history-max 200
 ```
 
+For Kubernetes 1.16 here's a [known issue](https://github.com/helm/helm/issues/6374).
+
 ## Use Chart
 
 Install the repo:
@@ -138,14 +140,14 @@ the ping and pong endpoints by doing this:
 
 ```bash
 kubectl port-forward deployment/pong1 8080
-open http://localhost:8080/pong
+open http://localhost:8080/actuator/info
 ```
 
 or
 
 ```bash
 kubectl port-forward deployment/ping1 8081
-open http://localhost:8081/ping
+open http://localhost:8081/actuator/info
 ```
 
 By refreshing the pages, roughly every second, you should see the total counters go up.
